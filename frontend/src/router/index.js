@@ -23,7 +23,7 @@ const router = createRouter({
       name:'friend-index',
     },
     {
-      path: "/create",
+      path: "/create/",
       component:CreateIndex,
       name:'create-index',
     },
@@ -48,7 +48,7 @@ const router = createRouter({
       name:'user-space-index',
     },
     {
-      path: "/user/profile",
+      path: "/user/profile/",
       component:ProfileIndex,
       name:'user-profile-index',
     },
