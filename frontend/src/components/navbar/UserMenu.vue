@@ -1,16 +1,31 @@
 <script setup>
 import {useUserStore} from "@/stores/user.js";
-import UserSpaceIcon from "@/components/navbar/icons/UserSpaceIcon.vue";
+import UserSpaceIndex from "@/components/navbar/icons/UserSpaceIcon.vue";
 import UserProfileIcon from "@/components/navbar/icons/UserProfileIcon.vue";
 import UserLogoutIcon from "@/components/navbar/icons/UserLogoutIcon.vue";
+import api from "@/js/http/api.js";
+import {useRouter} from "vue-router";
 
-const user=useUserStore()
+const user = useUserStore()
+const router = useRouter()
 
 function closeMenu() {
   const element = document.activeElement
   if (element && element instanceof HTMLElement) element.blur()
 }
 
+async function handleLogout() {
+  try {
+    const res = await api.post('/api/user/account/logout/')
+    if (res.data.result === 'success') {
+      user.logout()
+      await router.push({
+        name: 'homepage-index'
+      })
+    }
+  } catch (err) {
+  }
+}
 </script>
 
 <template>
@@ -20,33 +35,33 @@ function closeMenu() {
         <img :src="user.photo" alt="">
       </div>
     </div>
-    <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+    <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-48 p-2 shadow-lg">
       <li>
-        <RouterLink @click="closeMenu" :to="{name:'user-space-index',params:{user_id:user.id}}">
+        <RouterLink @click="closeMenu" :to="{name: 'user-space-index', params: {user_id: user.id}}">
           <div class="avatar">
             <div class="w-10 rounded-full">
               <img :src="user.photo" alt="">
             </div>
           </div>
-          <span class="text-base front-bold line-clamp-1">{{user.username}}</span>
+          <span class="text-base font-bold line-clamp-1 break-all">{{ user.username }}</span>
         </RouterLink>
       </li>
       <li>
-        <RouterLink @click="closeMenu" :to="{name:'user-space-index',params:{user_id:user.id}}" class="text-sm font-bold py-3">
-          <UserSpaceIcon/>
+        <RouterLink @click="closeMenu" :to="{name: 'user-space-index', params: {user_id: user.id}}" class="text-sm font-bold py-3">
+          <UserSpaceIndex />
           个人空间
         </RouterLink>
       </li>
       <li>
-        <RouterLink @click="closeMenu" :to="{name:'user-space-index',params:{user_id:user.id}}" class="text-sm font-bold py-3">
-          <UserProfileIcon/>
+        <RouterLink @click="closeMenu" :to="{name: 'user-profile-index'}" class="text-sm font-bold py-3">
+          <UserProfileIcon />
           编辑资料
         </RouterLink>
       </li>
       <li></li>
       <li>
-        <a @click="closeMenu" class="text-sm font-bold py-3 ">
-          <UserLogoutIcon/>
+        <a @click="handleLogout" class="text-sm font-bold py-3">
+          <UserLogoutIcon />
           退出登录
         </a>
       </li>
