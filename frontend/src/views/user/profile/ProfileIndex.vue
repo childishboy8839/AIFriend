@@ -7,7 +7,7 @@ import {ref, useTemplateRef} from "vue";
 import {base64ToFile} from "@/js/utils/base64_to_file.js";
 import api from "@/js/http/api.js";
 
-const user = useUserStore()
+const user = useUserStore()//引入全局变量
 
 const photoRef = useTemplateRef('photo-ref')
 const usernameRef = useTemplateRef('username-ref')

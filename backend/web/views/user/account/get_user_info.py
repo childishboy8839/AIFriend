@@ -6,7 +6,7 @@ from web.models.user import UserProfile
 
 
 class GetUserInfoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] #验证是否登录
     def get(self, request):
         try:
             user = request.user

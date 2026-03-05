@@ -11,12 +11,12 @@ class GetListCharacterView(APIView):
         try:
             items_count = int(request.query_params.get('items_count'))
             user_id = int(request.query_params.get('user_id'))
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(id=user_id) #django在查询时会自动把字符串转换成int
             user_profile = UserProfile.objects.get(user=user)
             characters_raw = Character.objects.filter(
                 author=user_profile
-            ).order_by('-id')[items_count: items_count + 20]
-            characters = []
+            ).order_by('-id')[items_count: items_count + 20]#倒序排序，取20个
+            characters = [] #定义一个返回数组，数据库的数据不能直接返回
             for character in characters_raw:
                 author = character.author
                 characters.append({

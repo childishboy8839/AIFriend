@@ -1,14 +1,14 @@
 <script setup>
 import {ref, watch} from "vue";
 
-const props = defineProps(['username'])
-const myUsername = ref(props.username)
+const props = defineProps(['username'])//props 不能直接修改
+const myUsername = ref(props.username)//创建一个副本
 
-watch(() => props.username, newVal => {
+watch(() => props.username, newVal => {//监听 props 变化,保持父子数据同步
   myUsername.value = newVal
 })
 
-defineExpose({
+defineExpose({//子组件暴露给父组件
   myUsername,
 })
 </script>

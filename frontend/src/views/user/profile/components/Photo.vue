@@ -4,23 +4,23 @@ import CameraIcon from "@/views/user/profile/components/icon/CameraIcon.vue";
 import Croppie from 'croppie'
 import 'croppie/croppie.css'
 
-const props = defineProps(['photo'])
+const props = defineProps(['photo'])//接收传入的属性
 const myPhoto = ref(props.photo)
 
 watch(() => props.photo, newVal => {
   myPhoto.value = newVal
 })
 
-const fileInputRef = useTemplateRef('file-input-ref')
-const modalRef = useTemplateRef('modal-ref')
-const croppieRef = useTemplateRef('croppie-ref')
+const fileInputRef = useTemplateRef('file-input-ref') //隐藏的文件选择框
+const modalRef = useTemplateRef('modal-ref')  //dialog 弹窗
+const croppieRef = useTemplateRef('croppie-ref')  //裁剪容器
 let croppie = null
 
 async function openModal(photo) {
-  modalRef.value.showModal()
+  modalRef.value.showModal()  //打开弹窗
   await nextTick()
 
-  if (!croppie) {
+  if (!croppie) { //只初始化一次
     croppie = new Croppie(croppieRef.value, {
       viewport: {width: 200, height: 200, type: 'square'},
       boundary: {width: 300, height: 300},
@@ -40,9 +40,9 @@ async function crop() {
   myPhoto.value = await croppie.result({
     type: 'base64',
     size: 'viewport',
-  })
+  })//等待裁剪结果
 
-  modalRef.value.close()
+  modalRef.value.close()//关闭弹窗
 }
 
 function onFileChange(e) {
@@ -50,7 +50,7 @@ function onFileChange(e) {
   e.target.value = ''
   if (!file) return
 
-  const reader = new FileReader()
+  const reader = new FileReader()//获取文件
   reader.onload = () => {
     openModal(reader.result)
   }
@@ -59,7 +59,7 @@ function onFileChange(e) {
 }
 
 onBeforeUnmount(() => {
-  croppie?.destroy()
+  croppie?.destroy()  //销毁组件
 })
 
 defineExpose({

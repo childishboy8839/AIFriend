@@ -17,7 +17,7 @@ const character = ref(null)
 
 onMounted(async () => {
   try {
-    const res = await api.get('/api/create/character/get_single/', {
+    const res = await api.get('/api/create/character/get_single/', {//页面加载时动态获取角色数据
       params: {
         character_id: characterId,
       }

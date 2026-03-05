@@ -1,6 +1,6 @@
 <script setup>
 import UserInfoField from "@/views/user/space/components/UserInfoField.vue";
-import {nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef} from "vue";
+import {nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch} from "vue";
 import {useRoute} from "vue-router";
 import api from "@/js/http/api.js";
 import Character from "@/components/character/Character.vue";
@@ -12,6 +12,18 @@ const hasCharacters = ref(true)
 const sentinelRef = useTemplateRef('sentinel-ref')
 const route = useRoute()
 
+function reset(){ //重置参数
+  userProfile.value=null
+  characters.value=[]
+  isLoading.value=false
+  hasCharacters.value=true
+  loadMore()
+}
+
+watch(()=>route.params.user_id,()=>{//监控user_id的变化,如果改变，重置参数，实现页面的跳转
+    reset()
+})
+
 function checkSentinelVisible() {  // 判断哨兵是否能被看到
   if (!sentinelRef.value) return false
 
@@ -19,8 +31,8 @@ function checkSentinelVisible() {  // 判断哨兵是否能被看到
   return rect.top < window.innerHeight && rect.bottom > 0
 }
 
-async function loadMore() {
-  if (isLoading.value || !hasCharacters.value) return
+async function loadMore() {  //加载函数
+  if (isLoading.value || !hasCharacters.value) return //如果正在加载或已经没有角色了，返回
   isLoading.value = true
 
   let newCharacters = []
@@ -32,7 +44,7 @@ async function loadMore() {
       }
     })
     const data = res.data
-    if (data.result === 'success') {
+    if (data.result === 'success') { //获取返回信息
       userProfile.value = data.user_profile
       newCharacters = data.characters
     }
@@ -46,7 +58,7 @@ async function loadMore() {
       await nextTick()
 
       if (checkSentinelVisible()) {
-        await loadMore()
+        await loadMore()//哨兵能被看到，继续加载
       }
     }
   }
@@ -56,7 +68,7 @@ let observer = null
 onMounted(async () => {
   await loadMore()
 
-  observer = new IntersectionObserver(
+  observer = new IntersectionObserver( //定义监听器
     entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {

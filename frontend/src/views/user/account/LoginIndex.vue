@@ -4,31 +4,31 @@ import {useUserStore} from "@/stores/user.js";
 import {useRouter} from "vue-router";
 import api from "@/js/http/api.js";
 
-const username=ref('')
+const username=ref('')//先创建几个空变量用来接收输入
 const password=ref('')
 const errorMessage=ref('')
 
 const user=useUserStore()
 const router=useRouter()
 async function handleLogin(){
-  errorMessage.value=''
-  if(!username.value.trim()) {
+  errorMessage.value=''   //清空错误信息
+  if(!username.value.trim()) {    //username.value → 输入框内容, .trim() → 去掉空格
     errorMessage.value = "用户名不能为空"
   }
   else if(!password.value.trim()){
     errorMessage.value="密码不能为空"
-  }
+  }//前端校验
   else{
     try{
       const res=await api.post('/api/user/account/login/',{
         username:username.value,
         password:password.value,
-      })
-      const data=res.data
+      })  //向后端发送用户的输入
+      const data=res.data  //获取返回数据
       if(data.result==='success'){
-        user.setAccessToken(data.access)
-        user.setUserInfo(data)
-        await router.push({
+        user.setAccessToken(data.access) //保存Token
+        user.setUserInfo(data)  //保存用户信息
+        await router.push({   //跳转到首页
           name: 'homepage-index'
         })
       }else{
@@ -39,6 +39,7 @@ async function handleLogin(){
     }
   }
 }
+
 </script>
 
 <template>

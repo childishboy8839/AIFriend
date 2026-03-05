@@ -9,16 +9,16 @@ from web.views.utils.photo import remove_old_photo
 
 
 class UpdateProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]#验证登录
     def post(self, request):
         try:
-            user = request.user
-            user_profile = UserProfile.objects.get(user=user)
-            username = request.data.get('username').strip()
-            profile = request.data.get('profile').strip()[:500]
+            user = request.user  #获取user
+            user_profile = UserProfile.objects.get(user=user)  #数据库查询
+            username = request.data.get('username').strip() #获取用户输入的信息
+            profile = request.data.get('profile').strip()[:500] #取前500个字
             photo = request.FILES.get('photo', None)
 
-            if not username:
+            if not username: #后端判断
                 return Response({
                     'result': '用户名不能为空'
                 })
@@ -31,11 +31,11 @@ class UpdateProfileView(APIView):
                     'result': '用户名已存在'
                 })
 
-            if photo:
+            if photo:#如果传入图片，删除旧头像
                 remove_old_photo(user_profile.photo)
                 user_profile.photo = photo
-            user_profile.profile = profile
-            user_profile.update_time = now()
+            user_profile.profile = profile #信息更新
+            user_profile.update_time = now() #记录更新时间
             user_profile.save()
             user.username = username
             user.save()
@@ -44,7 +44,7 @@ class UpdateProfileView(APIView):
                 'user_id': user.id,
                 'username': user.username,
                 'profile': user_profile.profile,
-                'photo': user_profile.photo.url,
+                'photo': user_profile.photo.url,#必须返回url
             })
         except:
             return Response({

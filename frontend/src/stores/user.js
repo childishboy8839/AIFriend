@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
-
+//全局保存用户信息，所有页面都从这里读取用户信息
 export const useUserStore=defineStore('user',()=> {
     const id=ref(0)
     const username=ref('')
@@ -9,7 +9,7 @@ export const useUserStore=defineStore('user',()=> {
     const accessToken=ref('')
     const hasPulledUserInfo=ref(false)
     function isLogin(){
-        return !!accessToken.value
+        return !!accessToken.value  //必须带value
     }
     function setAccessToken(token){
         accessToken.value=token

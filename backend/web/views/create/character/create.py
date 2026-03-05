@@ -10,13 +10,14 @@ class CreateCharacterView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
-            user = request.user
+            user = request.user #h获取用户的输入
             user_profile = UserProfile.objects.get(user=user)
             name = request.data.get('name').strip()
             profile = request.data.get('profile').strip()[:100000]
             photo = request.FILES.get('photo', None)
             background_image = request.FILES.get('background_image', None)
 
+            #后端判断
             if not name:
                 return Response({
                     'result': '名字不能为空'
@@ -33,7 +34,7 @@ class CreateCharacterView(APIView):
                 return Response({
                     'result': '聊天背景不能为空'
                 })
-
+            #数据库中创建角色
             Character.objects.create(
                 author=user_profile,
                 name=name,
