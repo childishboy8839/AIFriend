@@ -14,7 +14,7 @@ class ChatGraph:
             model='deepseek-v3.2',
             openai_api_key=os.getenv('API_KEY'),
             openai_api_base=os.getenv('API_BASE'),
-            streaming=True,
+            streaming=True, #流式输出
             model_kwargs={
                 "stream_options": {
                     "include_usage": True,  # 输出token消耗数量
