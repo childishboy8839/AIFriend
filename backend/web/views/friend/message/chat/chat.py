@@ -1,13 +1,14 @@
 import json
+from pprint import pprint
 
 from django.http import StreamingHttpResponse
-from langchain_core.messages import HumanMessage, BaseMessageChunk
+from langchain_core.messages import HumanMessage, BaseMessageChunk, AIMessage, SystemMessage
 from rest_framework.renderers import BaseRenderer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from web.models.friend import Friend, Message
+from web.models.friend import Friend, Message, SystemPrompt
 from web.views.friend.message.chat.graph import ChatGraph
 
 
@@ -17,6 +18,24 @@ class SSERenderer(BaseRenderer): #让 Django REST Framework 支持 SSE
     def render(self, data, accepted_media_type=None, renderer_context=None):
         return data
 
+def add_system_prompt(state,friend):#添加提示词
+    msgs=state['messages']
+    system_prompts=SystemPrompt.objects.filter(title='回复').order_by('order_number')
+    prompt=''
+    for sp in system_prompts:
+        prompt+=sp.prompt
+    prompt+=f'\n【角色性格】\n{friend.character.profile}\n'
+    return {'messages':[SystemMessage(prompt)] + msgs}
+
+def add_recent_messages(state,friend):#添加多轮对话，实现记忆功能
+    msgs=state['messages']
+    message_raw=list(Message.objects.filter(friend=friend).order_by('-id')[:10])
+    message_raw.reverse()
+    messages=[]
+    for m in message_raw:
+        messages.append(HumanMessage(m.user_message))
+        messages.append(AIMessage(m.output))
+    return {'messages':msgs[:1]+messages+msgs[-1:]}
 
 class MessageChatView(APIView):
     permission_classes = [IsAuthenticated]
@@ -39,6 +58,8 @@ class MessageChatView(APIView):
         inputs = {
             'messages': [HumanMessage(message)]#把用户消息包装成 LangChain 格式
         }
+        inputs= add_system_prompt(state=inputs,friend=friend)
+        inputs= add_recent_messages(state=inputs,friend=friend)
 
         def event_stream():
             full_output = ''#用来存历史记录
