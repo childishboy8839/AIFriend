@@ -17,7 +17,7 @@ const user = useUserStore()
           <img :src="character.photo" alt="">
         </div>
       </div>
-      <div class="chat-bubble whitespace-pre-wrap">{{ message.content }}</div>
+      <div class="chat-bubble whitespace-pre-wrap break-all">{{ message.content }}</div>
     </div>
     <div v-else class="chat chat-end">
       <div class="chat-image avatar">
@@ -25,7 +25,7 @@ const user = useUserStore()
           <img :src="user.photo" alt="">>
         </div>
       </div>
-      <div class="chat-bubble chat-bubble-success whitespace-pre-wrap">{{ message.content }}</div>
+      <div class="chat-bubble chat-bubble-success whitespace-pre-wrap break-all">{{ message.content }}</div>
     </div>
   </div>
 </template>
