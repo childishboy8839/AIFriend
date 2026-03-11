@@ -1,7 +1,7 @@
 <script setup>
 import SendIcon from "@/components/character/icons/SendIcon.vue";
 import MicIcon from "@/components/character/icons/MicIcon.vue";
-import {ref, useTemplateRef} from "vue";
+import {onUnmounted, ref, useTemplateRef} from "vue";
 import streamApi from "@/js/http/streamApi.js";
 import Microphone from "@/components/character/chat_field/input_field/Microphone.vue";
 
@@ -16,6 +16,94 @@ let processId=0 //用于记录版本号，方便用户随时打断输出
 
 const showMic=ref(false)//用于决定是否显示麦克风
 
+
+let mediaSource = null;
+let sourceBuffer = null;
+let audioPlayer = new Audio(); // 全局播放器实例
+let audioQueue = [];           // 待写入 Buffer 的二进制队列
+let isUpdating = false;        // Buffer 是否正在写入
+
+const initAudioStream = () => {
+    audioPlayer.pause();
+    audioQueue = [];
+    isUpdating = false;
+
+    mediaSource = new MediaSource();
+    audioPlayer.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', () => {
+        try {
+            sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+            sourceBuffer.addEventListener('updateend', () => {
+                isUpdating = false;
+                processQueue();
+            });
+        } catch (e) {
+            console.error("MSE AddSourceBuffer Error:", e);
+        }
+    });
+
+    audioPlayer.play().catch(e => console.error("等待用户交互以播放音频"));
+};
+
+const processQueue = () => {
+    if (isUpdating || audioQueue.length === 0 || !sourceBuffer || sourceBuffer.updating) {
+        return;
+    }
+
+    isUpdating = true;
+    const chunk = audioQueue.shift();
+    try {
+        sourceBuffer.appendBuffer(chunk);
+    } catch (e) {
+        console.error("SourceBuffer Append Error:", e);
+        isUpdating = false;
+    }
+};
+
+const stopAudio = () => {
+    audioPlayer.pause();
+    audioQueue = [];
+    isUpdating = false;
+
+    if (mediaSource) {
+        if (mediaSource.readyState === 'open') {
+            try {
+                mediaSource.endOfStream();
+            } catch (e) {
+            }
+        }
+        mediaSource = null;
+    }
+
+    if (audioPlayer.src) {
+        URL.revokeObjectURL(audioPlayer.src);
+        audioPlayer.src = '';
+    }
+};
+
+const handleAudioChunk = (base64Data) => {  // 将语音片段添加到播放器队列中
+    try {
+        const binaryString = atob(base64Data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        audioQueue.push(bytes);
+        processQueue();
+    } catch (e) {
+        console.error("Base64 Decode Error:", e);
+    }
+};
+
+onUnmounted(() => {
+    audioPlayer.pause();
+    audioPlayer.src = '';
+});
+
+
 function focus() {
   inputRef.value.focus()
 }
@@ -28,6 +116,9 @@ async function handleSend(event,audio_msg) {//聊天入口函数
     content = message.value.trim() //获取输入框的值
   }
   if (!content) return //空消息不能发送
+
+  initAudioStream()
+
   const curId=++processId //记录现在的版本号
   message.value = '' //将输入框清空
 
@@ -45,6 +136,9 @@ async function handleSend(event,audio_msg) {//聊天入口函数
         if (data.content) {//AI正在回复，会在消息后加上data.content，逐字回复
           emit('addToLastMessage', data.content)
         }
+        if (data.audio){
+          handleAudioChunk(data.audio)
+        }
       },
       onerror(err) {//避免卡死
       },
@@ -55,9 +149,11 @@ async function handleSend(event,audio_msg) {//聊天入口函数
 function close() {
   ++processId
   showMic.value=false
+  stopAudio()
 }
 function handleStop(){ //打断音频
   ++processId
+  stopAudio()
 }
 //暴露方法
 defineExpose({
